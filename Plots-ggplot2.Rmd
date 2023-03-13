@@ -13,7 +13,7 @@ library(here)
 ```
 
 ```{r}
-ca_na <- read_csv(here("data", "ca_np.csv"))
+ca_np <- read_csv(here("data", "ca_np.csv"))
 ci_np <- read_excel(here("data", "ci_np.xlsx"))
 ggplot(data = ci_np, aes(x = year, y = visitors)) +
   geom_line()
@@ -35,14 +35,53 @@ color = "purple",
 pch = 17,
 size = 4,
 alpha = 0.5)
-?pch
 gg_base +
 geom_point(
 aes(size = visitors,
 color = visitors),
 alpha = 0.5)
-
 gg_base +
   geom_col(aes(fill = visitors))
+gg_base +
+  geom_point(
+    aes(size = visitors, 
+        color = visitors),
+    alpha = 0.5) +
+  theme_minimal()
+gg_base +
+  geom_line(linetype = "dotted") +
+  theme_bw()+
+  labs(
+    x = "Year",
+    y = "Annual Park Visitors",
+    Title = "Channel Island NP Visitors",
+    Subtitle = "(1963 - 2016)"
+  )
+gg_base +
+  geom_line(color = "purple")+
+  geom_point(color = "orange", aes(size = year),
+             alpha = 0.5)
+gg_base +
+  geom_col(fill = "orange", color = "purple")+
+  geom_line(color = "green")
+
+ggplot(data = ca_np, aes(x = year, y = visitors))+
+  geom_line()
+
+ggplot(data = ca_np, aes(x = year, y = visitors, group = park_name)) +
+  geom_line()
+
+ggplot(data = ca_np, aes(x = year, y = visitors, group = park_name)) +
+  geom_line(aes(color = park_name))
+
+gg_np <- ggplot(data = ca_np, aes(x = year, y = visitors, group = park_name))
+gg_np +
+  geom_line()
+
+gg_np +
+  geom_line(show.legend = FALSE)+
+  theme_light()+
+  labs(x = "Year", y = "Visitors")+
+  facet_wrap(~ park_name)
 ```
 
