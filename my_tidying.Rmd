@@ -7,24 +7,64 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+# attache packages
+library(tidyverse)
+library(here)
+library(janitor)
+library(readxl)
+
+# creating data set inverts
+inverts <- read_excel(here("data", "inverts.xlsx"))
+
+# inverting from wide to long or "tidy" format
+# Note: Either single-quotes, double-quotes, OR backticks around years work!
+
+inverts_long <- pivot_longer(data = inverts, 
+                                    cols = '2016':'2018',
+                                    names_to = "year",
+                                    values_to = "sp_count")
+
+# coercion of year from charachter to numeric
+inverts_long <- inverts_long %>%
+  mutate(year = as.numeric(year))
+# inverting from long or tidy to wide, one column, the called "common name"
+inverts_wide <- inverts_long %>%
+  pivot_wider(names_from = common_name,
+              values_from = sp_count)
+# cleaning the names of columns
+inverts_wide %>%
+  clean_names()
+
+# fusioning content of two columns into one column
+inverts_unite <- inverts_long %>%
+  unite(col = "site_year", #what the name of the new column will be
+        c(site, year),     #the columns that will be combined
+        sep = "_")         #the separation between combined elements
+
+# new exercise using the function unite
+inverts_moyr <- inverts_long %>%
+  unite(col = "mo_yr",
+        c(month, year),
+        sep = "/")
+
+# uniting information from more than two columns
+inverts_triple_unite <- inverts_long %>%
+  tidyr::unite(col = "year_site_name", # what the name of the new column will be
+               c(year, site, common_name), # the columns that will be combined
+               sep = "-")                  # the separation between combined elements
+
+# sepparating elements from a single column into several columns
+inverts_sep <- inverts_unite %>%
+  tidyr::separate(site_year, into = c("my_site", "my_year"))
+
+# changing text in the whole file, like find and replace in word
+
+ca_abbr <- inverts %>%
+  mutate(
+    common_name =
+      str_replace(common_name,
+                  pattern = "california",
+                  replacement = "CA")
+  )
 ```
 
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
-```
-
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
