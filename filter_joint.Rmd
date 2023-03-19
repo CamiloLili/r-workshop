@@ -7,24 +7,90 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(readxl)
+library(here)
+library(kableExtra)
 ```
 
-## R Markdown
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+```{r}
+# read in data
+fish <- read_csv(here("data", "fish.csv"))
+kelp_abur <- read_excel(here("data", "kelp.xlsx"), sheet = "abur")
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+# selecting from file fish, only species Garibaldi
+fish_garibaldi <- fish %>%
+  filter(common_name == "garibaldi")
 
-```{r cars}
-summary(cars)
+# selecting from file fish, only fish from site mohk
+fish_mohk <- fish %>%
+  filter(site == "mohk")
+
+# selecting only observation with more than 50 fishes
+fish_over50 <- fish %>%
+  filter(total_count >= 50)
+
+# selecting conditions that match A or B or C criteria
+fish_3sp <- fish %>%
+  filter(common_name == "garibaldi" |
+           common_name == "blacksmith" |
+           common_name == "black surfperch")
+
+# alternatively, it is possible to use %in% to search within a single vector
+fish_3sp_option_b <- fish %>%
+  filter(common_name %in% c("garibaldi", "blacksmith", "black surfperch"))
+
+# selecting observations from 2016 or with fish garibaldi
+fish_gar_2016 <- fish%>%
+  filter(common_name == "garibaldi" |
+           year == "2016")
+
+# selecting conditions A AND B
+aque_2018 <- fish %>%
+  filter(year == 2018, site == "aque")
+
+#Creating a subset from the fish data frame, called low_gb_wr that only contains:
+#Observations for garibaldi or rock wrasse
+#AND the total_count is less than or equal to 10
+
+low_gb_wr <- fish %>%
+  filter(common_name == "garibaldi" |
+           common_name == "rock wrasse") %>%
+  filter(total_count <= 10)
+
+# filtering by a partial pattern
+fish_bl <- fish %>%
+  filter(str_detect(common_name, pattern = "black"))
+
+fish_it <- fish %>%
+  filter(str_detect(common_name, pattern = "it"))
+
+# joining
+abur_kelp_fish <- kelp_abur %>%
+  full_join(fish, by = "year", "site")
+
+kelp_fish_left <- kelp_abur %>%
+  left_join(fish, by = c("year", "site"))
+
+kelp_fish_injoin <- kelp_abur %>%   #if no matches between dataframes, no data will be shown
+  inner_join(fish, by = c("year", "site"))
+
+# filter and join in a single sequence
+my_fish_join <- fish %>%
+  filter(year == 2017, site == "abur") %>%
+  left_join(kelp_abur, by = c("year", "site")) %>%
+  mutate(fish_per_frond = total_count / total_fronds)
+
+# making a table from some dataframe using kable function
+kable(my_fish_join)
+
+# modifying the style of the table using same package
+my_fish_join %>%
+  kable() %>%
+  kable_styling(bootstrap_options = "striped", 
+                full_width = FALSE)
 ```
 
-## Including Plots
 
-You can also embed plots, for example:
 
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
